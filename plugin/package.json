@@ -1,0 +1,13 @@
+{
+  "name": "@neuronzai/plugin",
+  "version": "0.17.0",
+  "private": true,
+  "description": "The Neuronz.ai plugin for Claude Code and oh-my-pi (hooks, commands, skills, and MCP config). Consumed directly from the repo's plugin marketplace.",
+  "omp": {
+    "name": "neuronzai",
+    "description": "Profile-scoped persistent memory for oh-my-pi: recall on every prompt, rules at session start, and a sweep back into memory at the end.",
+    "extensions": [
+      "omp/plugin.ts"
+    ]
+  }
+}

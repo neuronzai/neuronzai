@@ -1,0 +1,96 @@
+{
+  "events": {
+    "session_start": [
+      {
+        "handler": "host_requirements",
+        "timeout": 5
+      },
+      {
+        "handler": "guidance",
+        "timeout": 10,
+        "extra_args": [
+          "--chunk",
+          "1"
+        ]
+      },
+      {
+        "handler": "guidance",
+        "timeout": 10,
+        "extra_args": [
+          "--chunk",
+          "2"
+        ]
+      },
+      {
+        "handler": "skills_sync",
+        "timeout": 10
+      }
+    ],
+    "user_prompt": [
+      {
+        "handler": "recall",
+        "timeout": 10
+      },
+      {
+        "handler": "update_notice",
+        "timeout": 5,
+        "legacy_script": "hooks/update_notice.py"
+      }
+    ],
+    "pre_tool": [
+      {
+        "handler": "switch",
+        "timeout": 10,
+        "matcher": "Bash"
+      },
+      {
+        "handler": "reload",
+        "timeout": 15,
+        "matcher": "Bash"
+      }
+    ],
+    "post_tool": [
+      {
+        "handler": "capture",
+        "timeout": 10,
+        "matcher": "Bash|Edit|Write|apply_patch|(?:mcp__.*__|.*_)log_action.*"
+      },
+      {
+        "handler": "topic_mode_sync",
+        "timeout": 10,
+        "matcher": "(?:mcp__.*__|.*_)(?:enter_topic|exit_topic)"
+      }
+    ],
+    "session_end": [
+      {
+        "handler": "sweep",
+        "timeout": 200,
+        "retry_if_interrupted": true
+      },
+      {
+        "handler": "skills_usage",
+        "timeout": 10
+      },
+      {
+        "handler": "runs_record",
+        "timeout": 10
+      },
+      {
+        "handler": "topic_exit",
+        "timeout": 5
+      }
+    ],
+    "pre_compact": [
+      {
+        "handler": "sweep",
+        "timeout": 200
+      }
+    ],
+    "stop": [
+      {
+        "handler": "selfsweep",
+        "timeout": 10
+      }
+    ]
+  }
+}

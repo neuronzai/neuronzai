@@ -1,0 +1,148 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' entry.py --host claude-code --event session_start --handler host_requirements",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' entry.py --host claude-code --event session_start --handler guidance --chunk 1",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' entry.py --host claude-code --event session_start --handler guidance --chunk 2",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' entry.py --host claude-code --event session_start --handler skills_sync",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' entry.py --host claude-code --event user_prompt --handler recall",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' hooks/update_notice.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|NotebookEdit|mcp__.*(create|update|delete)_rule.*|mcp__.*create_pull_request.*|mcp__.*pull_request_review_write.*|mcp__.*add_comment_to_pending_review.*|mcp__.*add_reply_to_pull_request_comment.*|mcp__.*notion-create-pages.*|mcp__.*notion-update-page.*|mcp__.*conversations_add_message.*|mcp__.*send_email.*|mcp__.*add_issue_comment.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' entry.py --host claude-code --event pre_tool --handler gate",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' entry.py --host claude-code --event pre_tool --handler reload",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|NotebookEdit|mcp__.*log_action.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' entry.py --host claude-code --event post_tool --handler capture",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__.*enter_topic|mcp__.*exit_topic",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' entry.py --host claude-code --event post_tool --handler topic_mode_sync",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' hooks/statusline_install.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' entry.py --host claude-code --event session_end --handler sweep",
+            "timeout": 200
+          },
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' entry.py --host claude-code --event session_end --handler detached_capture",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' entry.py --host claude-code --event session_end --handler skills_usage",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' entry.py --host claude-code --event session_end --handler runs_record",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' entry.py --host claude-code --event session_end --handler topic_exit",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' entry.py --host claude-code --event pre_compact --handler sweep",
+            "timeout": 200
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh -c 'p=\"$CLAUDE_PLUGIN_ROOT\"; if [ ! -f \"$p/hooks/run.sh\" ]; then d=\"${p%/*}\"; for v in $(ls -1t \"$d\" 2>/dev/null); do if [ -f \"$d/$v/hooks/run.sh\" ]; then p=\"$d/$v\"; break; fi; done; fi; exec sh \"$p/hooks/run.sh\" \"$p/$0\" \"$@\"' entry.py --host claude-code --event stop --handler selfsweep",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

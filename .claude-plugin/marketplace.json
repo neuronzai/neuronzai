@@ -1,0 +1,18 @@
+{
+  "name": "neuronzai",
+  "owner": {
+    "name": "Neuronz.ai",
+    "email": "contact@chrisalexandre.com"
+  },
+  "metadata": {
+    "description": "Neuronz.ai — the managed context and knowledge layer for AI coding agents. Add this repository as a marketplace and install the neuronzai plugin."
+  },
+  "plugins": [
+    {
+      "name": "neuronzai",
+      "source": "./plugin",
+      "version": "0.25.119",
+      "description": "Profile-scoped persistent memory for Claude Code and omp (oh-my-pi), backed by the managed Neuronz.ai service. Recalls the facts, past work, and docs relevant to every prompt, injects your standing rules and persona at session start, captures the session back into memory at session end and on compaction, records consequential tool calls to a per-session action ledger, and exposes the full memory, knowledge, voice, and topic tool families over MCP so memory works in every repo."
+    }
+  ]
+}

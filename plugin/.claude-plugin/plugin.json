@@ -1,0 +1,9 @@
+{
+  "name": "neuronzai",
+  "description": "Profile-scoped semantic memory for Claude Code, backed by the managed Neuronz.ai service. Auto-recalls relevant prior knowledge on every prompt, injects the applicable human-owned rules (global + per-profile) at session start, and sweeps the transcript into memory on session end / compaction. Adds memory_* MCP tools over HTTP so memory works in EVERY repo.",
+  "version": "0.25.119",
+  "author": {
+    "name": "Chris",
+    "email": "contact@chrisalexandre.com"
+  }
+}
