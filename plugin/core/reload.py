@@ -37,7 +37,7 @@ RELOAD_COMMAND = "/reload-assets"
 # Kind -> the word a user recognizes. Ordered: the report lists kinds in THIS order
 # so two hosts' messages read the same way.
 KIND_WORDS = (("skill", "skills"), ("command", "commands"),
-              ("agent", "subagents"), ("output_style", "output styles"))
+              ("agent", "subagents"))
 
 
 def _kind_list(kinds):

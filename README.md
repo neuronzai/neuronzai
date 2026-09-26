@@ -4,7 +4,7 @@ The [Neuronz.ai](https://neuronz.ai) plugin for Claude Code and omp: profile-sco
 persistent memory for your coding agent, backed by the managed Neuronz.ai service.
 
 This repository is generated from the Neuronz.ai release pipeline (plugin
-v0.25.120). It holds only the plugin; please do not open pull requests here.
+v0.25.123). It holds only the plugin; please do not open pull requests here.
 
 ## Claude Code
 

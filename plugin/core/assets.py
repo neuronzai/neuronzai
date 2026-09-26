@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SessionStart handler (host-agnostic) — materialize the active profile's ASSETS
 # from the server into the matching host config-dir subdirectories, so a profile
-# can ship host assets (skills, slash commands, subagents, output styles) that
+# can ship host assets (skills, slash commands, subagents) that
 # appear automatically in sessions started inside that profile. This is the
 # single lifecycle implementation dispatched by entry.py for every host.
 #
@@ -90,8 +90,12 @@ KIND_DIRS = {
     "skill": "skills",
     "command": "commands",
     "agent": "agents",
-    "output_style": "output-styles",
 }
+
+# Dirs of a kind the server no longer serves (#506: `output_style`). Earlier builds
+# linked into them, so every reconcile/offboard still sweeps our own links out of
+# the matching sibling of each target dir; the user's own files there are untouched.
+RETIRED_KIND_DIRS = ("output-styles",)
 
 # The directory name of an asset STORE under some host config home. Ownership of a
 # symlink is decided on these names alone (see _Store.owned_symlink_target), so one
@@ -457,7 +461,7 @@ class _Store:
         # stay under config_home either way, so only SYMLINKS ever land in the repo.
         # Materialize only kinds this host supports AND can host a target dir for, in
         # the conventional order (a host that returns no target dir for a kind — e.g.
-        # no agent/output_style equivalent — silently omits it).
+        # no agent equivalent — silently omits it).
         supported = host.caps.supported_asset_kinds
         self.kinds = tuple(k for k in KIND_DIRS
                            if k in supported and host.asset_target_dir(k))
@@ -480,6 +484,16 @@ class _Store:
     def cleanup_dirs_for(self, kind):
         current = str(self.target_dir_for(kind))
         return tuple(dict.fromkeys([current, *self.host.asset_legacy_target_dirs(kind)]))
+
+    def retired_dirs(self):
+        # The retired-kind dirs beside every dir this host publishes into, current
+        # and legacy: the output-styles dir beside each kind dir, in the repo and the
+        # config home alike.
+        parents = dict.fromkeys(
+            os.path.dirname(directory.rstrip("/"))
+            for kind in self.kinds for directory in self.cleanup_dirs_for(kind)
+        )
+        return [os.path.join(parent, name) for parent in parents for name in RETIRED_KIND_DIRS]
 
     def cache_path_for(self, profile, cwd):
         # One cache file per profile when a profile is set; otherwise per cwd (full
@@ -595,6 +609,14 @@ class _Store:
                     {str(rel).strip() for rel in files if str(rel).strip()}
                     if isinstance(files, list) else None
                 )
+        for name in RETIRED_KIND_DIRS:
+            # The retired kind's bodies: every link to them was swept above.
+            try:
+                entries = list((self.store_root / pkey / name).iterdir())
+            except OSError:
+                entries = []
+            for entry in entries:
+                self.remove_store_entry(entry)
         for kind in self.kinds:
             store = self.store_dir_for(pkey, kind)
             try:
@@ -700,7 +722,8 @@ class _Store:
         # EVERY supported target dir that points into our store, leaving the user's
         # own assets untouched. Empty-but-correct beats a stale other-profile set.
         directories = dict.fromkeys(
-            directory for kind in self.kinds for directory in self.cleanup_dirs_for(kind)
+            [*(directory for kind in self.kinds for directory in self.cleanup_dirs_for(kind)),
+             *self.retired_dirs()]
         )
         for directory in directories:
             try:
@@ -861,6 +884,8 @@ class _Store:
                 keep = legacy_keep.setdefault(directory, set())
                 for slug in failed_slugs:
                     keep.update(self.host.asset_legacy_names(kind, slug))
+        for directory in self.retired_dirs():
+            legacy_keep.setdefault(directory, set())
         for directory, keep in legacy_keep.items():
             try:
                 entries = list(Path(directory).iterdir())

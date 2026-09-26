@@ -1,5 +1,5 @@
 ---
-description: Re-sync this session's Neuronz.ai assets (skills, commands, subagents, output styles) from the server, without starting a new session
+description: Re-sync this session's Neuronz.ai assets (skills, commands, subagents) from the server, without starting a new session
 ---
 
 # /reload-assets
@@ -31,7 +31,7 @@ Reach for it when:
 2. **Relay the report verbatim**, then say what it means for the rest of this
    session in one line. The report is written from what this harness can actually
    re-scan, so do not upgrade it: if it says some kinds need a newly started
-   session, those commands/subagents/output styles are NOT available here yet, and
+   session, those commands/subagents are NOT available here yet, and
    offering one would send the user looking for something that is not there. If it
    names something they can run themselves, repeat that exactly.
 

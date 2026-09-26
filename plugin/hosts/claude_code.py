@@ -86,7 +86,7 @@ class ClaudeCodeHost:
         # statusLine is a command this host POLLS from the user's own settings — the
         # badge is composed inside that command, not handed back on a hook result.
         status_badge_from_result=False,
-        supported_asset_kinds=frozenset({"skill", "command", "agent", "output_style"}),
+        supported_asset_kinds=frozenset({"skill", "command", "agent"}),
         headless_capture=True,         # `claude -p` runs one turn with no terminal
         inline_context_limit_chars=10000,  # uniform inline-injection warning threshold (#519)
         substitutes_session_id=True,   # ${CLAUDE_SESSION_ID} expands in a command the model runs
@@ -179,11 +179,11 @@ class ClaudeCodeHost:
         return ""
 
     # Where each asset KIND materializes (the dir the agent reads). None = this host
-    # can't host that kind. Claude Code reads all four kinds from BOTH its config
+    # can't host that kind. Claude Code reads all three kinds from BOTH its config
     # home and the project dir; we publish to the project dir (asset_target_base)
     # and keep the config-home dir only as a legacy sweep target.
     _ASSET_SUBDIR = {"skill": "skills", "command": "commands",
-                     "agent": "agents", "output_style": "output-styles"}
+                     "agent": "agents"}
 
     def asset_target_dir(self, kind):
         sub = self._ASSET_SUBDIR.get(kind)

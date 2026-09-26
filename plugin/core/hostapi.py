@@ -117,7 +117,7 @@ class Capabilities:
                                                 # COMMAND the host POLLS, declared in the user's own config
                                                 # — the badge is composed inside that command, the field is
                                                 # ignored, and the legacy installer hook is what wires it.
-    supported_asset_kinds: frozenset            # subset of {skill, command, agent, output_style}
+    supported_asset_kinds: frozenset            # subset of {skill, command, agent}
     headless_capture: bool                      # host ships a headless CLI we can drive for one silent
                                                 # post-session bookkeeping turn (see core/detached). A host
                                                 # without one still sweeps; it just never gets the detached lane
