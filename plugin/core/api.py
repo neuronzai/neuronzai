@@ -43,8 +43,21 @@ def _note_auth(where, code):
     )
 
 
-def _open_json(request, timeout, where, retry_factory):
-    """Open once, refresh an OAuth grant on 401, then retry once."""
+def _read_error(error):
+    try:
+        raw = error.read()
+        body = json.loads(raw) if raw else {}
+    except Exception:
+        body = {}
+    return {"_status": error.code, **(body if isinstance(body, dict) else {})}
+
+
+def _open_json(request, timeout, where, retry_factory, report_errors=False):
+    """Open once, refresh an OAuth grant on 401, then retry once.
+
+    `report_errors` returns an HTTP error as its parsed JSON body plus `_status`
+    instead of None, for a user-invoked CLI that must say WHY the server refused;
+    a network failure is still None either way."""
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             raw = response.read()
@@ -63,7 +76,7 @@ def _open_json(request, timeout, where, retry_factory):
                     return None
         if error.code in (401, 403):
             _note_auth(where, error.code)
-        return None
+        return _read_error(error) if report_errors else None
     except Exception:
         return None
 
@@ -80,8 +93,9 @@ def get_json(path, params=None, profile="", session_id="", timeout=4, where="neu
 
 
 def post(path, params=None, body=None, profile="", session_id="", timeout=4, where="neuronzai",
-         extra_headers=None):
-    """POST (best-effort). Returns parsed JSON on success, else None. Never raises."""
+         extra_headers=None, report_errors=False):
+    """POST (best-effort). Returns parsed JSON on success, else None (or, with
+    `report_errors`, an HTTP error's body plus `_status`). Never raises."""
     qs = ("?" + urllib.parse.urlencode(params)) if params else ""
     data = json.dumps(body).encode() if body is not None else b""
     extra = dict(extra_headers or {})
@@ -94,4 +108,4 @@ def post(path, params=None, body=None, profile="", session_id="", timeout=4, whe
         method="POST",
         data=data,
     )
-    return _open_json(make_request(), timeout, where, lambda: make_request())
+    return _open_json(make_request(), timeout, where, lambda: make_request(), report_errors)
