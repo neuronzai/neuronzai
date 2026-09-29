@@ -42,6 +42,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from neuronzai_cwd import session_cwd, session_scope
 from core import auth as plugin_auth
+from core.api import machine_home
 
 NEURONZAI_URL = plugin_auth.base_url()
 PROFILE = (os.environ.get("NEURONZAI_PROFILE") or "").strip()
@@ -141,6 +142,10 @@ def fetch(session_id, payload):
         headers["X-Profile"] = profile
     elif cwd:
         headers["X-Cwd"] = cwd
+        # The server matches a portable `~/…` route only against a known home.
+        home = machine_home()
+        if home:
+            headers["X-Home"] = home
 
     req = urllib.request.Request(
         f"{NEURONZAI_URL}/api/topics/active-sessions", headers=headers, method="GET"

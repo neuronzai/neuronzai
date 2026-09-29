@@ -24,6 +24,16 @@ SWEEP_PROTOCOL_HEADER = "X-Neuronzai-Sweep-Protocol"
 SWEEP_PROTOCOL_VERSION = "2"
 
 
+def machine_home():
+    # This machine's home directory, resolved like the cwd we send (real path, no
+    # trailing slash). The server stores a route under it as `~/…`, so one route
+    # follows the user across machines. Empty when HOME cannot be resolved.
+    home = os.path.expanduser("~")
+    if not home.startswith("/"):
+        return ""
+    return os.path.realpath(home).rstrip("/")
+
+
 def headers(profile="", session_id="", extra=None, force_refresh=False):
     h = dict(extra or {})
     token = auth.access_token(force_refresh=force_refresh)
@@ -33,6 +43,9 @@ def headers(profile="", session_id="", extra=None, force_refresh=False):
         h["X-Profile"] = profile
     if session_id:
         h["X-Session-Id"] = session_id
+    home = machine_home()
+    if home:
+        h["X-Home"] = home
     return h
 
 

@@ -124,6 +124,16 @@ def canonical_cwd(cwd):
     return root or cwd
 
 
+def machine_home():
+    # Inlined from core/api.py machine_home (#612): this machine's home as a real
+    # path without a trailing slash, sent as X-Home so the server can match a
+    # route stored as `~/…`. Empty when HOME cannot be resolved.
+    home = os.path.expanduser("~")
+    if not home.startswith("/"):
+        return ""
+    return os.path.realpath(home).rstrip("/")
+
+
 def session_cwd(payload):
     return canonical_cwd(raw_cwd(payload))
 
@@ -286,6 +296,10 @@ def fetch(session_id, payload):
         cwd = session_cwd(payload)
         if cwd:
             headers["X-Cwd"] = cwd
+            # The server matches a portable `~/…` route only against a known home.
+            home = machine_home()
+            if home:
+                headers["X-Home"] = home
 
     req = urllib.request.Request(
         f"{NEURONZAI_URL}/api/topics/active-sessions", headers=headers, method="GET"
