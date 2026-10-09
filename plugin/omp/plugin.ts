@@ -256,7 +256,7 @@ export default function NeuronzaiExtension(pi: any): void {
   // command and skill bodies it sub-discovers from this same package still read
   // `sh "${CLAUDE_PLUGIN_ROOT}/hooks/run.sh"`, and its bash tool inherits this
   // process's environment -- so export the root here, or every shell-out workflow
-  // (login, logout, remember, capture, switch-profile, ...) hands the agent an
+  // (login, logout, capture, switch-profile, ...) hands the agent an
   // unset variable and it goes hunting for SOME copy of the plugin (on a box that
   // also has Claude Code it found and ran Claude's cached copy). Set, not
   // defaulted: inside omp this package IS the plugin those bodies belong to.
@@ -284,7 +284,7 @@ export default function NeuronzaiExtension(pi: any): void {
   // live agent-session while this module stays loaded -- and omp's own bundled
   // extensions all subscribe to `session_switch`/`session_branch`/`session_tree`
   // alongside `session_start` and re-key on each. A boolean latch would give
-  // every session after the first no bootstrap at all (no rules, no repo brief,
+  // every session after the first no bootstrap at all (no rules, no persona,
   // no assets) while `identify()` reports its new id to recall and the sweep, and
   // would spill the previous session's queued context into it.
   let started: Identity | null = null

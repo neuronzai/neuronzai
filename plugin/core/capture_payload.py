@@ -55,7 +55,7 @@ UNCLOSED_SPAN = re.compile(
 # containing these very markers. The tagged-span patterns never had the bug, which
 # is what made the two strippers disagree.
 BARE_SCAFFOLD = re.compile(
-    r"(?ms)^[^\n]*?(?:PINNED authoritative rules|### RULES DIGEST|### REPO BRIEF"
+    r"(?ms)^[^\n]*?(?:PINNED authoritative rules|### RULES DIGEST"
     r"|\[TOPIC MODE|Persistent recall —|operating card omitted"
     r"|Output too large \(\d+(?:\.\d+)?KB\)\. Full output saved to).*?(?:\n\n|\Z)")
 

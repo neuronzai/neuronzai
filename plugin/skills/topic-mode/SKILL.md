@@ -72,12 +72,12 @@ topics ONLY. When a task topic's work looks complete, OFFER — one line, in the
 human's flow — to mark it `done` via `update_topic(status="done")`. Never flip it
 yourself; the human confirms. Whether a topic is "finished" is theirs to decide.
 
-- **The clean signal is plans, not vibes.** A task topic hosts `plans`, each with
-  its own `status` and a verifiable `goal`. When all of its plans are `done`
-  (`list_plans(topicId=…)` shows none still `active`/`draft`), that's the moment to
-  ask "looks like <topic> is finished — want me to mark it done?".
+- **The signal is evidence, not vibes.** The finish line the topic's summary
+  describes is met — its linked pull requests are merged, its tickets closed, the
+  work it names is shipped. That's the moment to ask "looks like <topic> is
+  finished — want me to mark it done?".
 - **Best moments:** at `exit_topic` (you're already recapping the work), and right
-  after you mark the topic's LAST plan `done`.
+  after the topic's last open piece of work lands.
 - **Epics:** a parent epic is only done when all its sub-topics are — `get_topic`
   returns its children; roll them up before offering to close the epic.
 - Offer once. If they say not yet, leave it `working_on` and move on — don't nag.

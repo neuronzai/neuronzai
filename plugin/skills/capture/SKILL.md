@@ -1,6 +1,6 @@
 ---
 name: capture
-description: "Distill THIS session into the right Neuronz.ai records (memory / knowledge / action), routed automatically. Topic-aware. Run it when the user asks to checkpoint the session, AND whenever a Neuronz.ai lifecycle instruction (the end-of-session self-sweep) tells you to consolidate — in that case run SILENTLY, which means the turn ends with ZERO output. Optional argument scopes what to capture (default — the whole conversation)."
+description: "Distill THIS session into the right Neuronz.ai records (memory / knowledge / action), routed automatically — what someone who was there would remember and expect to bring up again, meaning what was learned, decided, weighed and left open, and how the user reacted. Topic-aware. Run it when the user asks to checkpoint the session, AND whenever a Neuronz.ai lifecycle instruction (the end-of-session self-sweep) tells you to consolidate — in that case run SILENTLY, which means the turn ends with ZERO output. Optional argument scopes what to capture (default — the whole conversation)."
 ---
 
 # Neuronz.ai capture workflow
@@ -104,31 +104,40 @@ Neuronz.ai exists so that an agent learns from its work and becomes:
 **A record that serves none of the three is noise, and noise is worse than nothing** —
 it competes for a place in the recall a real record needed.
 
-**The test:** something you know or suspect to be true, about something of
-importance, that must be recorded because forgetting it would mean re-investigating
-it or repeating a mistake.
+**The test:** what someone who was there would remember and expect to be able to
+bring up again. The goal is continuity: a session opened tomorrow in this profile
+should feel like talking to the same person, who remembers what was worked on and
+discussed — not one who never stopped the conversation, and not a stranger who read
+the minutes.
 
+- That covers what was learned and decided, what was weighed and why, what was
+  left open, and how the user reacted — not only lessons that prevent repeating a
+  mistake.
 - A mistake made in THIS session, and the lesson that prevents repeating it, **IS**
-  such a fact. Do not discard it as "session-specific" — it is the single highest
-  value thing a session produces.
-- Something whose value **expires with the session** is not: a command's exit
-  status, a test's duration, a CI result, the current state of a branch or a PR.
-  "CI came back green in 160 seconds" costs nothing to forget.
-- A durable claim you are recording ANYWAY should be written so it stays true —
-  strip the transient half rather than dropping the whole record.
+  such a record. Do not discard it as "session-specific" — it is among the most
+  valuable things a session produces.
+- Two things never pass. Something whose value **expires with the session**: a
+  command's exit status, a test's duration, a CI result, the current state of a
+  branch or a PR — "CI came back green in 160 seconds" costs nothing to forget. And
+  anything taken from the **instructions you were handed** rather than from the
+  work or the user (§4).
+- Write each record so it stays true — strip the transient half rather than
+  dropping the whole record.
+
+Facts hold what is TRUE; actions hold what HAPPENED — including what was discussed,
+weighed, decided and left open.
 
 Then route each piece that passes:
 
 1. **A fact you learned / now know** → `fact_add`, one atomic self-contained fact per call. FIRST `fact_search` to dedup — add only what's new, `fact_update` to correct an existing fact, skip duplicates. If the `fact_add` answer carries a `neighbors` pointer (live facts almost identical to what you just saved), settle each relevant one with `fact_resolve` (`duplicate` retires the new fact, `supersedes` archives the old one, `conflicts` disputes the pair). Set its epistemic `status` to `verified`, `unverified`, or `plan` from the evidence instead of presenting an unverified claim as established. Write caveman-`full`, in the profile's record language (the caller names it if it passed one; otherwise the SessionStart operating card does — English unless the profile is set otherwise), whatever language this session runs in: drop function words/filler; keep code, identifiers, numbers, exact errors and any text you quote verbatim in their source language. NEVER store secrets/tokens or transient state (that's `kv_*`, not memory).
 2. **A reference doc worth keeping whole** (a runbook, architecture/topology, a decision record you produced) → `add_knowledge`, passing structured `derivedFacts` candidates (`content`, optional `kind`/`status`) so the server saves and links them in the same write; each returns a `neighbors` pointer like `fact_add` — settle it with `fact_resolve`. On a body update pass the complete current set, possibly `[]`; omitted old doc-only atoms retire. A single fact is NOT a doc — use `fact_add` for that.
-3. **What you DID** (a PR, a fix, a deploy, a debug session) → `log_action` with a SUBSTANTIVE summary: what you did, WHY, and what you checked or ruled out. (Asset runs are auto-recorded at SessionEnd; a deliberate `log_action` here captures the why and stands the auto-capture down for the session.)
+3. **What HAPPENED** (a PR, a fix, a deploy, a debug session, a design discussion) → `log_action` with a SUBSTANTIVE summary: what was done or discussed, the options weighed and WHY one won, what you checked or ruled out, how the user reacted, and what was LEFT OPEN — so tomorrow's session can pick up the thread. (Asset runs are auto-recorded at SessionEnd; a deliberate `log_action` here captures the why and stands the auto-capture down for the session.)
 4. **A durable RULE the user stated** ("always / never …") → do NOT mint it silently. ASK: show the draft rule text + a short title, get an explicit yes, ask the scope ("this profile or all of them?"), then `create_rule`. In SILENT mode there is nobody to ask, so it is ALWAYS `propose_rule` — never `create_rule`.
-5. **A change to how a repo here works** (a new repo, a changed layout, a new convention or gotcha this session established) → refresh that repo's card with `upsert_repo_brief` (caveman, within the cap). The brief is pushed WHOLE into context at SessionStart, so a stale one misleads every future session in that repo.
 
 ## 4. Do NOT
 
 - Do NOT treat the topic summary as a place to "save what you learned" — it's a human-facing recap, of zero agent-recall value.
-- Do NOT invent facts to fill tiers. If the scope holds nothing durable, say so and stop.
+- Do NOT invent facts to fill tiers. If the scope holds nothing worth bringing up again, say so and stop.
 - Do NOT record the machinery you were handed. Your context carries the SessionStart operating card, the per-prompt recall payload, the active-rules and topic banners, and your own tool output. None of that is session content — it is the instructions you were given and the plumbing that delivered them. "Rules are authoritative and override facts", "a stored atom is called a FACT", "recall fuses facts/actions/knowledge each prompt" all read like durable truths, and storing them teaches the profile nothing it did not already tell you. A fact must come from the WORK or the USER, never from the frame around them.
 
 ## 4b. When you must ask — the memory block
@@ -147,7 +156,7 @@ asks in ONE clearly-marked place and never in ordinary prose.
   nothing signalling to go looking).
 
 Do NOT ask which tier something belongs in, whether a borderline item is worth
-saving (if you are unsure it is durable, do not save it), or to confirm a judgment
+saving (if you are unsure anyone would bring it up again, do not save it), or to confirm a judgment
 you are able to make. A block that fires on every sweep gets ignored, and then the
 real conflicts get ignored with it.
 

@@ -41,36 +41,9 @@ def canonical_cwd(cwd):
     return os.path.dirname(common.rstrip("/")) or cwd
 
 
-def head_commit(cwd):
-    """The repo's current git HEAD sha, or "" when there isn't one (#18).
-
-    The server has no clone, so this is the only place the CURRENT state of the
-    repo can be observed. SessionStart sends it so a stored repo brief written at
-    the same sha is recognized as provably fresh instead of merely old, and the
-    end-of-session sweep sends it so the facts it mints record which state of the
-    code they were true of.
-
-    Same contract as canonical_cwd above: 2s timeout, and every failure (no git,
-    not a repo, an empty repo with no commit yet) returns "" rather than raising —
-    a missing sha only degrades the hint to age-only, and must never be able to
-    break a lifecycle hook.
-    """
-    if not cwd or not os.path.isdir(cwd):
-        return ""
-    try:
-        proc = subprocess.run(
-            ["git", "-C", cwd, "rev-parse", "HEAD"],
-            capture_output=True, text=True, timeout=2,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return ""
-    sha = proc.stdout.strip()
-    return sha if proc.returncode == 0 else ""
-
-
 # HEAD is read as a FILE, not asked for with `git rev-parse --abbrev-ref HEAD`.
-# canonical_cwd and head_commit above shell out, which is affordable on the
-# once-per-session hooks that call them; the PreToolUse gate fires before EVERY
+# canonical_cwd above shells out, which is affordable on the once-per-session
+# hooks that call it; the PreToolUse gate fires before EVERY
 # tool call, hundreds of times a session, in the path that BLOCKS the agent. A
 # process spawn per call is not a cost that path can carry, and the answer is one
 # short line in one small text file with a stable documented format.

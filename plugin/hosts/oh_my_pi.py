@@ -203,11 +203,18 @@ class OhMyPiHost:
         "SHELL": "Bash",
         "FILE_EDIT": "Edit|Write|apply_patch",
         "RULE_WRITE": "(?:mcp__.*__|.*_)(?:create|update|delete)_rule.*",
-        "PR_WRITE": ("(?:mcp__.*__|.*_)(?:create_pull_request|pull_request_review_write|"
-                     "add_comment_to_pending_review|add_reply_to_pull_request_comment).*"),
-        "NOTION_WRITE": "(?:mcp__.*__|.*_)notion-(?:create-pages|update-page).*",
-        "MESSAGE_WRITE": ("(?:mcp__.*__|.*_)(?:conversations_add_message|send_email|"
-                          "add_issue_comment).*"),
+        # Mirrors claude_code.TOOL_MATCHERS in omp's naming (see that comment).
+        "PR_WRITE": ("(?:mcp__.*__|.*_)(?:create_pull_request|update_pull_request|pull_request_write|"
+                     "pull_request_review_write|add_comment_to_pending_review|"
+                     "add_reply_to_pull_request_comment|add_pull_request_review_comment|"
+                     "submit_pending_pull_request_review).*"),
+        "NOTION_WRITE": ("(?:mcp__.*__|.*_)(?:notion-(?:create-pages|update-page|create-comment)|"
+                         "API-(?:post-page|patch-page|patch-block-children|create-a-comment|"
+                         "update-page-markdown)).*"),
+        "MESSAGE_WRITE": ("(?:mcp__.*__|.*_)(?:conversations_add_message|"
+                          "slack_(?:post_message|send_message|schedule_message|reply_to_thread)|"
+                          "send_email|add_issue_comment|issue_write).*|"
+                          "(?:mcp__.*mail.*__|.*mail.*_)create_draft.*"),
         "ACTION_LOG": "(?:mcp__.*__|.*_)log_action.*",
         "TOPIC_MODE": "(?:mcp__.*__|.*_)(?:enter_topic|exit_topic)",
     }

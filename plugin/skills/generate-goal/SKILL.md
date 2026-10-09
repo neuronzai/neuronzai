@@ -22,12 +22,11 @@ and never starts doing the work the goal describes; arming `/goal` is the user's
 to do (see [Stop after you write it](#stop-after-you-write-it)). Two callers use
 it:
 
-- **Building a plan.** When you draft a plan, generate a goal for the plan's
-  finish line and one for each step, then persist them with `add_plan` (`goal` on
-  the plan, `goal` on each step). The stored goals are what the user later arms
-  `/goal` with to execute the plan or run up to a step.
+- **A multi-step piece of work.** When you draft a plan for the work, generate a
+  goal for its finish line and one for each step, and hand them back so the user
+  can arm `/goal` with the whole thing or run it up to a step.
 - **A one-off run.** When the user wants to drive `/goal` directly, generate the
-  condition and hand it back for them to paste into `/goal`. Do not store it.
+  condition and hand it back for them to paste into `/goal`.
 
 ## Drill until it's nailed down
 
@@ -116,9 +115,8 @@ Step 1 — theme context:
 <step-1 condition>
 ```
 
-Persist the plan's goals with `add_plan` (the caption is only for the user's eye
-— `add_plan` stores the condition text itself). For a one-off there's just the
-single block to paste.
+The caption is only for the user's eye; the block body is what goes into
+`/goal`. For a one-off there's just the single block to paste.
 
 ## Stop after you write it
 
@@ -130,4 +128,4 @@ Producing the condition is the **end** of this skill. After you output the block
 - **Do not start doing the work** the goal describes, and do not keep working
   toward it across turns. Hand the text back and stop.
 - **Do not write the goal to any tier yourself** — this skill is stateless by
-  design; only `add_plan` / `update_plan` persist goals (the plan path above).
+  design. Hand the text back; it is never stored.

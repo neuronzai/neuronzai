@@ -64,11 +64,22 @@ class ClaudeCodeHost:
         "FILE_EDIT": "Edit|Write",
         "NOTEBOOK": "NotebookEdit",
         "RULE_WRITE": "mcp__.*(create|update|delete)_rule.*",
-        "PR_WRITE": ("mcp__.*create_pull_request.*|mcp__.*pull_request_review_write.*|"
-                     "mcp__.*add_comment_to_pending_review.*|mcp__.*add_reply_to_pull_request_comment.*"),
-        "NOTION_WRITE": "mcp__.*notion-create-pages.*|mcp__.*notion-update-page.*",
-        "MESSAGE_WRITE": ("mcp__.*conversations_add_message.*|mcp__.*send_email.*|"
-                          "mcp__.*add_issue_comment.*"),
+        # The write-tool names below are read off each server's own source/docs and
+        # must stay in step with TOOL_ACTS (apps/server/src/services/voice-detect.ts):
+        # a name absent here never reaches the gate, so the server cannot see it.
+        # Both are pinned against one list in apps/server/tests/unit/voice-tool-acts.test.ts.
+        "PR_WRITE": ("mcp__.*create_pull_request.*|mcp__.*update_pull_request.*|"
+                     "mcp__.*pull_request_write.*|mcp__.*pull_request_review_write.*|"
+                     "mcp__.*add_comment_to_pending_review.*|mcp__.*add_reply_to_pull_request_comment.*|"
+                     "mcp__.*add_pull_request_review_comment.*|mcp__.*submit_pending_pull_request_review.*"),
+        "NOTION_WRITE": ("mcp__.*notion-create-pages.*|mcp__.*notion-update-page.*|"
+                         "mcp__.*notion-create-comment.*|"
+                         "mcp__.*__API-(post-page|patch-page|patch-block-children|create-a-comment|"
+                         "update-page-markdown)"),
+        "MESSAGE_WRITE": ("mcp__.*conversations_add_message.*|"
+                          "mcp__.*slack.*(post_message|send_message|schedule_message|reply_to_thread).*|"
+                          "mcp__.*send_email.*|mcp__.*mail.*create_draft.*|"
+                          "mcp__.*add_issue_comment.*|mcp__.*issue_write.*"),
         "ACTION_LOG": "mcp__.*log_action.*",
         "TOPIC_MODE": "mcp__.*enter_topic|mcp__.*exit_topic",
     }

@@ -51,4 +51,7 @@ Arguments (verbatim from the user, may be empty): $ARGUMENTS
    `profile="<NAME>"` on every `neuronzai` MCP tool call.
 
 5. **Confirm** in one or two lines: the new profile, the directory now routed to
-   it, and that new sessions started there use it.
+   it, and that new sessions started there use it. Then offer to fill it: the
+   profile starts empty, and `/neuronzai:init-profile` seeds it from where its
+   knowledge already lives (this repository when run with no argument, or the
+   repositories, GitHub, Notion and docs the user names).

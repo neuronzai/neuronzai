@@ -45,7 +45,7 @@ SIGNED_OUT_PREFIX = (
 # get_json returns a body (not None) when the server answers with nothing to say.
 DELIVERY_FAILED_MESSAGE = (
     "⚠ Neuronz.ai memory did NOT load for this session — the bootstrap request failed "
-    "(server error, timeout, or bad response). Your rules, repo brief and standing "
+    "(server error, timeout, or bad response). Your rules and standing "
     "context are missing, so an empty memory here means UNKNOWN, not \"no rules\". "
     "Treat anything you would normally check against stored rules as unverified, and "
     "start a new session once the server is reachable."
@@ -131,15 +131,6 @@ def handle(event: Event, host: Host, chunk: int = 1):
     params = {"chunk": str(chunk)}
     if cwd:
         params["cwd"] = cwd
-    # #18: the repo's CURRENT head, so the server can tell a repo brief that is
-    # merely OLD from one the code has actually moved under. Read off event.cwd,
-    # not the resolved `cwd`, because a /switch-profile session deliberately sends
-    # no cwd — this value resolves nothing and is never persisted, so unlike the
-    # cwd it can create no profile route or anchor. "" whenever there is no git
-    # repo, which just degrades the hint to age-only.
-    head = profile_mod.head_commit(event.cwd)
-    if head:
-        params["head"] = head
     # The SESSION model this session is running under, so the bootstrap can scope
     # model-aware rules from the first turn — same omit-when-absent contract as the
     # other observables. The adapter already lower-cased the host's own id; no

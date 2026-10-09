@@ -16,6 +16,38 @@ helper opens Neuronz.ai in their browser, completes OAuth authorization-code +
 PKCE, and stores the refreshable grant outside the plugin package. Never print,
 read, or otherwise expose the credential.
 
+## After a successful sign-in: offer plugin updates (omp only)
+
+Once the helper reports the machine signed in, run:
+
+```sh
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/run.sh" "${CLAUDE_PLUGIN_ROOT}/hooks/omp_auto_update.py" check
+```
+
+Act on the first word of its one-line answer:
+
+- `skip` or `on` — say nothing about updates and finish.
+- `ask` — omp is not set to install plugin updates by itself, so this plugin
+  stays on the installed version until the user updates it by hand. Ask the user,
+  in one short question, whether omp should install Neuronz.ai plugin updates
+  automatically when it starts. Mention that this changes omp's own
+  `marketplace.autoUpdate` setting to `auto`, which applies to every marketplace
+  plugin they have installed, not only Neuronz.ai. Then STOP and wait for their
+  answer.
+
+Only after an explicit yes, run:
+
+```sh
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/run.sh" "${CLAUDE_PLUGIN_ROOT}/hooks/omp_auto_update.py" enable
+```
+
+and relay its result. On a no, or any answer that is not a clear yes, change
+nothing. Never run `enable` without that yes, and never edit omp's settings any
+other way.
+
+On a headless machine this step comes after the pasted-code exchange below has
+succeeded, not after the first helper run that only printed a link.
+
 ## When the machine has no browser
 
 On a headless machine (a server reached over SSH, a container) the helper cannot

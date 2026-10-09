@@ -44,7 +44,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash|Edit|Write|NotebookEdit|mcp__.*(create|update|delete)_rule.*|mcp__.*create_pull_request.*|mcp__.*pull_request_review_write.*|mcp__.*add_comment_to_pending_review.*|mcp__.*add_reply_to_pull_request_comment.*|mcp__.*notion-create-pages.*|mcp__.*notion-update-page.*|mcp__.*conversations_add_message.*|mcp__.*send_email.*|mcp__.*add_issue_comment.*",
+        "matcher": "Bash|Edit|Write|NotebookEdit|mcp__.*(create|update|delete)_rule.*|mcp__.*create_pull_request.*|mcp__.*update_pull_request.*|mcp__.*pull_request_write.*|mcp__.*pull_request_review_write.*|mcp__.*add_comment_to_pending_review.*|mcp__.*add_reply_to_pull_request_comment.*|mcp__.*add_pull_request_review_comment.*|mcp__.*submit_pending_pull_request_review.*|mcp__.*notion-create-pages.*|mcp__.*notion-update-page.*|mcp__.*notion-create-comment.*|mcp__.*__API-(post-page|patch-page|patch-block-children|create-a-comment|update-page-markdown)|mcp__.*conversations_add_message.*|mcp__.*slack.*(post_message|send_message|schedule_message|reply_to_thread).*|mcp__.*send_email.*|mcp__.*mail.*create_draft.*|mcp__.*add_issue_comment.*|mcp__.*issue_write.*",
         "hooks": [
           {
             "type": "command",
