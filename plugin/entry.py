@@ -163,6 +163,15 @@ def main():
     raw = sys.stdin.read()
     host = _load_host(resolve_host_name(args.host))
     event = host.parse_event(args.event, raw)
+    # #747 — bind the host process to this session so the MCP proxy can forward
+    # it. Not from the detached capture child: it is reparented, so its nearest
+    # ancestor is no longer the host whose proxy would read the binding.
+    if args.handler != "capture_run":
+        try:
+            from core import host_session
+            host_session.record(getattr(event, "session_id", "") or "")
+        except Exception:
+            pass
     output = _dispatch(host, args.handler, event, args)
     # #494 — size the exact context about to cross the host boundary, and when it
     # exceeds the host's MEASURED inline limit, co-emit a user-facing systemMessage

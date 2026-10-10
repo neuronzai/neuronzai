@@ -22,7 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-from core import auth  # noqa: E402
+from core import auth, host_session  # noqa: E402
 
 
 AUTH_TOOLS = [
@@ -80,6 +80,8 @@ class McpProxy:
         self.write_lock = threading.Lock()
         self.initialized = False
         self.marker = auth.marker_revision()
+        # Ancestry never changes for a running proxy, so the key is resolved once.
+        self.host_key = host_session.host_key()
 
     def write(self, payload: dict) -> None:
         with self.write_lock:
@@ -112,6 +114,11 @@ class McpProxy:
         profile = (os.environ.get("NEURONZAI_PROFILE") or "").strip()
         if profile:
             headers["X-Profile"] = profile
+        # #747 — the session id the hooks bound to this host process. Read per
+        # call: `/clear` or a resume rotates it under a running proxy.
+        session_id = host_session.lookup(self.host_key)
+        if session_id:
+            headers["X-Session-Id"] = session_id
         request = urllib.request.Request(
             f"{auth.base_url()}/mcp",
             data=json.dumps(message).encode("utf-8"),

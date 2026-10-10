@@ -223,7 +223,11 @@ WORK IN THREE PASSES, IN THIS ORDER.
    reach the end having written more facts than you ran searches, you skipped this
    pass — go back.
 
-3. WRITE — one atomic, self-contained fact per `fact_add`.
+3. WRITE — one atomic, self-contained fact per `fact_add`, each with `about`: a
+   short subject line naming what the record is about without its value
+   ("colour of the wall", never "the wall is blue"). `log_action` and every
+   `add_page` derivedFacts item need one too; a missing or value-carrying line is
+   refused with ABOUT_INVALID.
 
 ⚠ The transcript contains TOOL RESULTS as `← …` lines. That is where the evidence
 is: prose says "let me check", the tool result says what was actually true. Use it
@@ -232,7 +236,7 @@ a claim the session asserted but never confirmed, `plan` for intent that is not 
 reality. Do not present a guess as established.
 
 ROUTING. Facts hold what is TRUE; actions hold what HAPPENED. A durable fact →
-`fact_add`. A reference document worth keeping whole → `add_knowledge`. What was
+`fact_add`. A reference document worth keeping whole → `add_page`. What was
 done or discussed → `log_action`, with a substantive summary: what was weighed and
 why, what was decided, how the user reacted, and what was LEFT OPEN, so the next
 session can pick up the thread. A rule

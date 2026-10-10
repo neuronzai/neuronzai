@@ -1,6 +1,6 @@
 ---
 name: capture
-description: "Distill THIS session into the right Neuronz.ai records (memory / knowledge / action), routed automatically — what someone who was there would remember and expect to bring up again, meaning what was learned, decided, weighed and left open, and how the user reacted. Topic-aware. Run it when the user asks to checkpoint the session, AND whenever a Neuronz.ai lifecycle instruction (the end-of-session self-sweep) tells you to consolidate — in that case run SILENTLY, which means the turn ends with ZERO output. Optional argument scopes what to capture (default — the whole conversation)."
+description: "Distill THIS session into the right Neuronz.ai records (memory / page / action), routed automatically — what someone who was there would remember and expect to bring up again, meaning what was learned, decided, weighed and left open, and how the user reacted. Topic-aware. Run it when the user asks to checkpoint the session, AND whenever a Neuronz.ai lifecycle instruction (the end-of-session self-sweep) tells you to consolidate — in that case run SILENTLY, which means the turn ends with ZERO output. Optional argument scopes what to capture (default — the whole conversation)."
 ---
 
 # Neuronz.ai capture workflow
@@ -82,7 +82,7 @@ Apply these overrides to the workflow below:
 
 Call `current_topic` first — but link to topics in BOTH cases:
 
-- **If a topic IS active** → pass `topicId=<the active topic's id>` on every `fact_add` / `log_action` / `add_knowledge` so the server files the record as a `member` in the same write (use `link` for anything already written).
+- **If a topic IS active** → pass `topicId=<the active topic's id>` on every `fact_add` / `log_action` / `add_page` so the server files the record as a `member` in the same write (use `link` for anything already written).
 - **Whether or not a topic is active** → also check each record against the profile's EXISTING topics (`search` over topics, or `list_topics`) and file it under ANY it's genuinely about. Membership is MANY-TO-MANY (not exclusive): pass `topicId=[id1, id2, …]` (an array) to link several at once. This is what makes a record resurface when the human later works under any of those topics — an unlinked record is orphaned, invisible to the topic and to topic-scoped recall.
 
 Use judgment on relevance (don't force-fit an off-topic record), but do NOT skip linking just because you're not "in" a topic. At the end, REFRESH the active topic's `summary` (`update_topic`) in full prose, FOR the human, from what this session contributed. Do NOT create a new topic (topics are human-created only).
@@ -129,8 +129,10 @@ weighed, decided and left open.
 
 Then route each piece that passes:
 
+Every fact, action and `derivedFacts` item carries `about`: a short subject line (≤120 chars) naming what the record is about WITHOUT its value — "colour of the wall", never "the wall is blue". It is the line a later session decides on before fetching the record; the server refuses a missing or value-carrying line with `ABOUT_INVALID`.
+
 1. **A fact you learned / now know** → `fact_add`, one atomic self-contained fact per call. FIRST `fact_search` to dedup — add only what's new, `fact_update` to correct an existing fact, skip duplicates. If the `fact_add` answer carries a `neighbors` pointer (live facts almost identical to what you just saved), settle each relevant one with `fact_resolve` (`duplicate` retires the new fact, `supersedes` archives the old one, `conflicts` disputes the pair). Set its epistemic `status` to `verified`, `unverified`, or `plan` from the evidence instead of presenting an unverified claim as established. Write caveman-`full`, in the profile's record language (the caller names it if it passed one; otherwise the SessionStart operating card does — English unless the profile is set otherwise), whatever language this session runs in: drop function words/filler; keep code, identifiers, numbers, exact errors and any text you quote verbatim in their source language. NEVER store secrets/tokens or transient state (that's `kv_*`, not memory).
-2. **A reference doc worth keeping whole** (a runbook, architecture/topology, a decision record you produced) → `add_knowledge`, passing structured `derivedFacts` candidates (`content`, optional `kind`/`status`) so the server saves and links them in the same write; each returns a `neighbors` pointer like `fact_add` — settle it with `fact_resolve`. On a body update pass the complete current set, possibly `[]`; omitted old doc-only atoms retire. A single fact is NOT a doc — use `fact_add` for that.
+2. **A reference doc worth keeping whole** (a runbook, architecture/topology, a decision record you produced) → `add_page`, passing structured `derivedFacts` candidates (`content`, `about`, optional `kind`/`status`) so the server saves and links them in the same write; each returns a `neighbors` pointer like `fact_add` — settle it with `fact_resolve`. On a body update pass the complete current set, possibly `[]`; omitted old doc-only atoms retire. A single fact is NOT a doc — use `fact_add` for that.
 3. **What HAPPENED** (a PR, a fix, a deploy, a debug session, a design discussion) → `log_action` with a SUBSTANTIVE summary: what was done or discussed, the options weighed and WHY one won, what you checked or ruled out, how the user reacted, and what was LEFT OPEN — so tomorrow's session can pick up the thread. (Asset runs are auto-recorded at SessionEnd; a deliberate `log_action` here captures the why and stands the auto-capture down for the session.)
 4. **A durable RULE the user stated** ("always / never …") → do NOT mint it silently. ASK: show the draft rule text + a short title, get an explicit yes, ask the scope ("this profile or all of them?"), then `create_rule`. In SILENT mode there is nobody to ask, so it is ALWAYS `propose_rule` — never `create_rule`.
 
@@ -138,7 +140,7 @@ Then route each piece that passes:
 
 - Do NOT treat the topic summary as a place to "save what you learned" — it's a human-facing recap, of zero agent-recall value.
 - Do NOT invent facts to fill tiers. If the scope holds nothing worth bringing up again, say so and stop.
-- Do NOT record the machinery you were handed. Your context carries the SessionStart operating card, the per-prompt recall payload, the active-rules and topic banners, and your own tool output. None of that is session content — it is the instructions you were given and the plumbing that delivered them. "Rules are authoritative and override facts", "a stored atom is called a FACT", "recall fuses facts/actions/knowledge each prompt" all read like durable truths, and storing them teaches the profile nothing it did not already tell you. A fact must come from the WORK or the USER, never from the frame around them.
+- Do NOT record the machinery you were handed. Your context carries the SessionStart operating card, the per-prompt recall payload, the active-rules and topic banners, and your own tool output. None of that is session content — it is the instructions you were given and the plumbing that delivered them. "Rules are authoritative and override facts", "a stored atom is called a FACT", "recall fuses facts/actions/pages each prompt" all read like durable truths, and storing them teaches the profile nothing it did not already tell you. A fact must come from the WORK or the USER, never from the frame around them.
 
 ## 4b. When you must ask — the memory block
 
@@ -191,7 +193,7 @@ does not run in SILENT mode.
 SILENT mode skips this section entirely: write the records, say nothing, stop —
 and §6, not this section, is where a silent turn ends.
 
-Tell the user, in plain prose (NOT caveman), a short per-tier list of what you created or updated: facts (n), knowledge (n, + derived facts), actions (n), and any rule you proposed/created or topic summary you refreshed. Keep it scannable so they can verify and correct.
+Tell the user, in plain prose (NOT caveman), a short per-tier list of what you created or updated: facts (n), pages (n, + derived facts), actions (n), and any rule you proposed/created or topic summary you refreshed. Keep it scannable so they can verify and correct.
 
 Records scope to the current profile automatically (the server resolves it). Pass `cwd` = your SessionStart project directory if you need to force the right profile.
 

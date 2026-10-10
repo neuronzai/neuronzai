@@ -1,6 +1,6 @@
 ---
 name: init-profile
-description: "Explicit-only Neuronz.ai workflow; use only when the user invokes the init-profile workflow. Seed a new or thin Neuronz.ai profile from where its knowledge already lives — repositories, GitHub, Notion, docs — reading every source in full and writing the profile's initial facts, knowledge docs, people and proposed rules, then proving them with a recall-only quiz. With no argument inside a git repository, analyses that repository."
+description: "Explicit-only Neuronz.ai workflow; use only when the user invokes the init-profile workflow. Seed a new or thin Neuronz.ai profile from where its knowledge already lives — repositories, GitHub, Notion, docs — reading every source in full and writing the profile's initial facts, pages, people and proposed rules, then proving them with a recall-only quiz. With no argument inside a git repository, analyses that repository."
 ---
 
 # Neuronz.ai init-profile workflow
@@ -95,7 +95,7 @@ cannot open Notion. Write the release steps themselves.
   Everything else → `kind: "fact"`. A claim the source hedges, or that you could not
   confirm → `status: "unverified"`; stated intent or a roadmap → `status: "plan"`.
 - **A document worth keeping whole** — a runbook, a process, an architecture overview,
-  a decision record, and ONE overview per repository → `add_knowledge`, with:
+  a decision record, and ONE overview per repository → `add_page`, with:
   - a **stable `source` key** derived from where it came from, so a re-run UPDATES the
     same document instead of adding a duplicate: `repo://<name>` for a repository's
     overview, `repo://<name>/<path>` for a doc inside it, `github://<owner>/<repo>/…`
@@ -113,7 +113,7 @@ cannot open Notion. Write the release steps themselves.
   user approves it. A sentence that DESCRIBES how the system behaves ("the sweep never
   touches the profile while anything is capturing") is a fact, however it is worded.
 
-**Settle the look-alikes.** `fact_add` and `add_knowledge` may answer with
+**Settle the look-alikes.** `fact_add` and `add_page` may answer with
 `neighbors` — live facts that already say nearly the same thing. Read them
 (`fact_get`) and settle with `fact_resolve(newId, targetId, outcome)` only the ones
 that say the same thing or contradict it: `duplicate` when they say the same thing,
@@ -150,7 +150,7 @@ This is the pass condition. Do not report success without it.
    to do when W breaks. Keep the expected answer for each, from the source.
 2. **Hand the questions to a FRESH subagent with NO access to the sources.** Its
    instructions: answer each question using ONLY the Neuronz.ai tools (`recall`,
-   `fact_search`, `get_knowledge`, `get_persona`, `read_rules`) with
+   `fact_search`, `get_page`, `get_persona`, `read_rules`) with
    `profile: "<target profile>"`; do not read files, run shell commands, browse, or
    call any other tool; when the records do not answer a question, reply `UNKNOWN`
    rather than guessing. Give it the questions only — never the expected answers.
@@ -169,7 +169,7 @@ One short report to the user:
 
 - **Sources read** — each source and how much of it (files, pages, pull requests).
 - **Sources skipped** — each, with the reason and what would unlock it.
-- **Records written** — counts by kind: knowledge docs (created / updated), facts by
+- **Records written** — counts by kind: pages (created / updated), facts by
   kind (fact, glossary, entity, persona), people and teams, proposed rules (and that
   they wait for the user's approval in the dashboard).
 - **Quiz** — the score on the first pass and the final pass (e.g. `19/25 → 25/25`),

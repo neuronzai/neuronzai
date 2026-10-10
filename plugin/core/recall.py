@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # UserPromptSubmit handler (host-agnostic) — fetch the active RULES (the
 # authoritative human-owned tier, re-surfaced EVERY turn) + RECALL (memories +
-# actions + knowledge) relevant to the prompt and inject them as
+# actions + pages) relevant to the prompt and inject them as
 # additionalContext, so the agent "already knows" without calling a tool. This is
 # the single lifecycle implementation dispatched by entry.py for every host.
 #
@@ -12,8 +12,8 @@
 #            `instruction`, which already carries the exact read_rules(…) call to
 #            make; names only — no rule text rides.
 #   hits   — `hitsPointer` (#434): a measured count and the recall call to make.
-#   voice  — `voicePointer` (#495): the layers, the claim count and the exact
-#            get_resolved_voice call.
+#   voice  — `voicePointer` (#495): layer/claim COUNTS (a layer list on servers
+#            before #747) and the exact get_resolved_voice call.
 # This renders them into one additionalContext string; a pointer's rendering IS
 # its instruction, fenced verbatim, because the server composes every word of it. Best-effort: any failure returns None (never blocks the prompt).
 # Session-scoped dedup: forwards session + dedup=1 so the same item is injected AT
@@ -421,7 +421,7 @@ def handle(event: Event, host: Host):
     # the user their entire injected context.
     add_conversation_context(params, event.transcript_path, host)
 
-    # Unified RECALL (memories + actions + knowledge) — the deduped endpoint.
+    # Unified RECALL (memories + actions + pages) — the deduped endpoint.
     # All HTTP + auth-failure logging goes through core/api (fail-open → None).
     data = api.get_json("/api/memory/recall", params=params, profile=profile,
                         where="memory_inject")
@@ -490,12 +490,16 @@ def handle(event: Event, host: Host):
         for it in self_traits
         if isinstance(it, dict) and (it.get("content") or "").strip()
     ]
-    # Under budget pressure the server sends the self block as a POINTER: no
-    # traits, one `instruction` naming the count and the pull. Render it as the
-    # block's single line so the lane never vanishes without a trace.
+    # #747: the server sends the self block as a POINTER — no traits, one
+    # server-composed `instruction` naming the counts and the get_persona call.
+    # Render it VERBATIM under its own header; the traits header above is for
+    # an older server that still pushes trait text.
     self_instruction = self_persona.get("instruction")
-    if not self_lines and isinstance(self_instruction, str) and self_instruction.strip():
-        self_lines = [f"- {self_instruction.strip()}"]
+    self_pointer = (
+        self_instruction.strip()
+        if not self_lines and isinstance(self_instruction, str) and self_instruction.strip()
+        else ""
+    )
 
     others = persona.get("others") or []
     if not isinstance(others, list):
@@ -511,6 +515,14 @@ def handle(event: Event, host: Host):
             "PRIORS, NOT rules and NOT a relevance match to this prompt — never cite them as "
             "instructions or as user requests.]\n"
             + "\n".join(self_lines)
+            + "\n</persona>"
+        )
+    elif self_pointer:
+        persona_parts.append(
+            "<persona>\n"
+            "[A POINTER to the stored traits of the user and their colleagues — counts and the "
+            "call, no trait text. Pulled traits are PRIORS, NOT rules.]\n"
+            + self_pointer
             + "\n</persona>"
         )
 
@@ -540,7 +552,7 @@ def handle(event: Event, host: Host):
 
     persona_block = "\n\n".join(persona_parts)
 
-    # Recall block (memories + actions + knowledge) — a POINTER, never records.
+    # Recall block (memories + actions + pages) — a POINTER, never records.
     #
     # #434/#561 — the server sends `hitsPointer`: a measured count, a per-type
     # breakdown and the instruction it composed, and NO record text at all. The
@@ -559,11 +571,22 @@ def handle(event: Event, host: Host):
     # is no longer silence on its own: a turn that matched nothing while a record
     # this session was handed has since been retired or contested still has
     # something to say, and it is the most urgent thing in the payload.
+    #
+    # #747 — the counts now ride per record type under `types[].groups`, as
+    # plain integers; the older shape carried them as top-level `{total}`
+    # groups. Both are summed so either server renders.
+    stale_keys = ("retired", "disputed", "archived")
     stale_total = sum(
         group.get("total") or 0
-        for group in (pointer.get(key) for key in ("retired", "disputed", "archived"))
+        for group in (pointer.get(key) for key in stale_keys)
         if isinstance(group, dict)
     )
+    for entry in pointer.get("types") or []:
+        groups = entry.get("groups") if isinstance(entry, dict) else None
+        if isinstance(groups, dict):
+            stale_total += sum(
+                groups.get(key) for key in stale_keys if isinstance(groups.get(key), int)
+            )
     matched = isinstance(pointer_total, int) and pointer_total > 0
     renderable = matched or stale_total > 0
     if pointer_instruction and renderable:
@@ -574,12 +597,11 @@ def handle(event: Event, host: Host):
         # fresh session otherwise answers "no, we never did that" out of an empty
         # head.
         #
-        # #569 — the pointer now GROUPS its records by whether this session has
-        # actually been handed their text, and the groups carry ids. The
-        # instruction (server-composed, rendered verbatim as always) explains what
-        # each group means and quotes its key; everything added below is payload
-        # data laid out under that key, never wording composed here. A server that
-        # sends no groups renders exactly as it did before.
+        # #569/#747 — the pointer GROUPS its records by whether this session has
+        # actually been handed their text; since #747 it carries only the counts
+        # and one match-set call, all inside the server-composed instruction. The
+        # group lines below render only an OLDER server's enumerated groups
+        # (ids under each key), never wording composed here.
         recall_block = (
             "<memory-context>\n"
             + (STATE_POINTER_HEADER + "\n" if (is_state and matched) else "")
@@ -607,7 +629,7 @@ def handle(event: Event, host: Host):
             "<active-topic>\n"
             f"[TOPIC MODE — you are working under the topic '{t_title}' (id {topic.get('id')}). "
             f"LINK new durable records to it as you create them — pass topicId={topic.get('id')} on "
-            "fact_add / log_action / add_knowledge (the server writes the member edge in the same "
+            "fact_add / log_action / add_page (the server writes the member edge in the same "
             "call) so the topic gathers this session's work; an unlinked record is orphaned. Route "
             "off-topic work elsewhere. Refresh its summary (update_topic summary=…) and call exit_topic "
             "when the session's work is done.]\n"
@@ -652,19 +674,30 @@ def handle(event: Event, host: Host):
             "<active-profile>\n"
             "[This session was re-scoped with /switch-profile. Persistent memory is now profile "
             f'**{override}**. Thread profile="{override}" on EVERY neuronzai MCP tool call '
-            "(fact_add, recall, log_action, add_knowledge, …) for the rest of this session.]\n"
+            "(fact_add, recall, log_action, add_page, …) for the rest of this session.]\n"
             "</active-profile>"
         )
 
-    # Related-topic HANDLES (#160/#561) — the entry-point fix. The profile's topics
-    # nearest to THIS prompt, as compact POINTERS (title + status + id), so the agent
-    # can open an existing thread with get_topic instead of only meeting a topic when a
-    # member record wins recall. The stored gist rode here until #561 and no longer
-    # does: a handle names the thread, get_topic is what tells you what is in it.
-    # Server-gated (recall_related_topics_enabled) + session seen-window deduped.
+    # Related topics (#160/#561/#747) — the entry-point fix: the profile's topics
+    # nearest to THIS prompt, so the agent can open an existing thread with
+    # get_topic instead of only meeting a topic when a member record wins recall.
+    # Since #747 the server sends a count plus the match-set call that lists them
+    # (`topicsPointer`); an older server sends the handles (`relatedTopics`).
+    # Server-gated (recall_related_topics_enabled).
     related = data.get("relatedTopics") or []
     related_block = ""
-    if isinstance(related, list) and related:
+    # #747 — related topics ride as a COUNT plus the match-set call; the
+    # instruction is server-composed and rendered verbatim. The handle list
+    # below is what an older server still sends.
+    topics_pointer = data.get("topicsPointer")
+    topics_instruction = (
+        (topics_pointer.get("instruction") or "").strip()
+        if isinstance(topics_pointer, dict)
+        else ""
+    )
+    if topics_instruction:
+        related_block = "<related-topics>\n" + topics_instruction + "\n</related-topics>"
+    elif isinstance(related, list) and related:
         rlines = []
         for t in related:
             if not isinstance(t, dict) or not t.get("id"):
@@ -688,7 +721,7 @@ def handle(event: Event, host: Host):
     # Prompt time is the only moment before the text exists, and the only lane
     # that can serve an agent-to-user register at all. Ghost-writing voices are
     # not resolved here — see the <voice-pull> block below. The server sends a
-    # POINTER and never the composed spec: the version, the layers, a claim count
+    # POINTER and never the composed spec: the version, layer and claim counts
     # and the instruction it composed to go pull the voice with
     # get_resolved_voice. The rendering IS that instruction, fenced verbatim.
     voice_block = ""

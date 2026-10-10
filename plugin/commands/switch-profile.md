@@ -57,7 +57,7 @@ Target profile (verbatim from the user, may be empty): $ARGUMENTS
 
 4. **Thread it on your own tool calls.** For the REST of this session, pass
    `profile="<NAME>"` on every `neuronzai` MCP tool call (`fact_add`, `recall`,
-   `fact_search`, `log_action`, `add_knowledge`, …). The HTTP MCP transport doesn't
+   `fact_search`, `log_action`, `add_page`, …). The HTTP MCP transport doesn't
    carry the session cwd, so the explicit `profile` arg is what scopes YOUR
    reads/writes. The push hooks (auto-recall, self-sweep, end-of-session sweep,
    run records) pick up the override automatically — you don't manage those.

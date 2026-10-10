@@ -26,7 +26,7 @@ call the MCP tools below.
   session around it. Topic mode is a mindfulness signal, not an auto-filer.
 
 ## Enter
-1. **Find the topic.** Search first — `search` (BM25 over topics + knowledge) or
+1. **Find the topic.** Search first — `search` (BM25 over topics + pages) or
    `list_topics` — for an existing topic that fits. Topics are **human-owned**:
    if none exists, ask the human before creating one; only `create_topic` when
    they clearly want to track this subject.
@@ -40,7 +40,7 @@ call the MCP tools below.
 - **Link every new durable record to this topic as you create it** — this is what
   fills the topic, and it's what lets recall surface the work when you (or another
   session) come back to it. The cheap, reliable way: pass `topicId=<this topic's
-  id>` on `fact_add` / `log_action` / `add_knowledge`, and the server writes the
+  id>` on `fact_add` / `log_action` / `add_page`, and the server writes the
   `member` edge in the SAME call (use `link` for something already written).
   Default to linking; skip only a record that's genuinely off-topic. An UNLINKED
   record is invisible to the topic — that's exactly how a feature's work gets
